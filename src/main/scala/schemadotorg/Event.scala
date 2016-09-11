@@ -7,13 +7,13 @@ import net.ruippeixotog.scalascraper.model._
 import net.ruippeixotog.scalascraper.dsl.DSL._
 import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
 
-case class Event(name: String, performer: String, description: Option[Element], startDate: LocalDateTime)
+case class Event(name: String, performer: String, description: String, startDate: LocalDateTime)
 object Event {
   def apply(doc: Document): Event = {
     Event(
       eventProperty(doc, "name").map(_.text).getOrElse(""),
       eventProperty(doc, "performer").map(_.text).getOrElse(""),
-      eventProperty(doc, "description"),
+      eventProperty(doc, "description").map(_.text).getOrElse(""),
       eventProperty(doc, "startDate").map(_.attr("content")).map(LocalDateTime.parse).get)
   }
 

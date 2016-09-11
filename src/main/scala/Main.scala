@@ -33,6 +33,7 @@ object Main extends App {
       uid = Uid(s"deventerschouwburg2ical-$id"),
       dtstart = Dtstart(ZonedDateTime.ofLocal(eventData.startDate, ZoneId.of("Europe/Amsterdam"), null)),
       summary = Summary(summary),
+      description = Description(eventData.description),
       url = Url(link)
     )
   }
@@ -43,7 +44,9 @@ object Main extends App {
   def fetchDetails(url: String): Future[Event] =
     fetchDocument(url).map(doc => parseEvent(url, doc))
 
-  def fetchDocument(url: String): Future[Document] = Future { browser.get(url) }
+  def fetchDocument(url: String): Future[Document] = Future {
+    browser.get(url)
+  }
 
   def fetchIndex(url: String): Future[List[Event]] =
     fetchDocument(url)
@@ -52,7 +55,7 @@ object Main extends App {
 
   val events = Await.result(fetchIndex(domain + "/programma"), 20 seconds)
     .filter(!_.summary.get.value.text.contains("Theaterdiner reservering"))
-    
+
   print(asIcal(Calendar(
     prodid = Prodid("-//raboof/deventerschouwburg2ical//NONSGML v1.0//NL"),
     events = events
