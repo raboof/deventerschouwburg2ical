@@ -51,6 +51,8 @@ object Main extends App {
       .flatMap(links => Future.sequence(links.map(domain + _).map(fetchDetails)))
 
   val events = Await.result(fetchIndex(domain + "/programma"), 20 seconds)
+    .filter(!_.summary.get.value.text.contains("Theaterdiner reservering"))
+    
   print(asIcal(Calendar(
     prodid = Prodid("-//raboof/deventerschouwburg2ical//NONSGML v1.0//NL"),
     events = events
