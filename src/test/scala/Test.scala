@@ -31,6 +31,7 @@ class Test extends WordSpec with Main with Matchers {
       event.uid.value.text should equal("deventerschouwburg2ical-ademnood-serious-request-deventer-2016")
       event.summary.get.value.text should equal("ADEMNOOD")
       event.dtstart.get.value.dt should equal(ZonedDateTime.of(2016, 12, 20, 20, 30, 0, 0, ZoneId.of("Europe/Amsterdam")))
+      event.description.get.value.text should include("Een muzikale topavond")
     }
   }
 }

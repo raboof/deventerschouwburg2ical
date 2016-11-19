@@ -54,7 +54,7 @@ trait Main {
     val id = ".*/programma/(.*)".r.findFirstMatchIn(link).get.group(1)
     val mainContent = doc >> element(".maincontent-bar")
     val summary = (mainContent >> text("h1")) + (mainContent >?> text("h2")).map(" - " + _).getOrElse("")
-    val description = mainContent >> text("p")
+    val description = (mainContent >> texts("p")).tail.head
     val startDate = parseDate((doc >> element(".prices-info") >> "p").mkString)
     val zone = ZoneId.of("Europe/Amsterdam")
     Event(
