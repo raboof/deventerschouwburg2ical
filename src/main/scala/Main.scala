@@ -1,4 +1,5 @@
-import java.time.{ ZonedDateTime, ZoneId, ZoneOffset }
+import java.time.{ ZonedDateTime, ZoneId, ZoneOffset, LocalDateTime }
+import java.io.{ InputStream, OutputStream }
 
 import scala.language.{ postfixOps, implicitConversions }
 
@@ -18,22 +19,49 @@ import net.ruippeixotog.scalascraper.browser.JsoupBrowser
 import net.ruippeixotog.scalascraper.dsl.DSL._
 import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
 
-object Main extends App {
+trait Main {
   implicit def liftOption[T](value: T): Option[T] = Some(value)
 
-  def links(doc: Document): List[String] =
-    (doc >> elementList(".itemTitle")).map(_ >> attr("href")("a"))
+  def links(doc: Document): List[String] = {
+    (doc >> elementList("h3")).filter(text(_) == "Producties")
+      .flatMap(_.parent >> elementList("a")).flatten
+      .map(_.attr("href"))
+  }
+
+  val months = List(
+    "januari",
+    "februari",
+    "maart",
+    "april",
+    "mei",
+    "juni",
+    "juli",
+    "augustus",
+    "september",
+    "oktober",
+    "november",
+    "december")
+
+  def parseDate(txt: String): ZonedDateTime = {
+    val re = (""".*? (\d+) (""" + months.mkString("|") + """) (\d+).*?(\d+):(\d+) uur.*""").r
+    txt match {
+      case re(day, month, year, hour, minute) =>
+        ZonedDateTime.of(year.toInt, months.indexOf(month) + 1, day.toInt, hour.toInt, minute.toInt, 0, 0, ZoneId.of("Europe/Amsterdam"))
+    }
+  }
 
   def parseEvent(link: String, doc: Document): Event = {
-    val eventData = schemadotorg.Event(doc)
-    val id = ".*/programma/(\\d+)".r.findFirstMatchIn(link).get.group(1)
-    val summary = eventData.performer + " - " + eventData.name
+    val id = ".*/programma/(.*)".r.findFirstMatchIn(link).get.group(1)
+    val mainContent = doc >> element(".maincontent-bar")
+    val summary = (mainContent >> text("h1")) + (mainContent >?> text("h2")).map(" - " + _).getOrElse("")
+    val description = mainContent >> text("p")
+    val startDate = parseDate((doc >> element(".prices-info") >> "p").mkString)
     val zone = ZoneId.of("Europe/Amsterdam")
     Event(
       uid = Uid(s"deventerschouwburg2ical-$id"),
-      dtstart = Dtstart(ZonedDateTime.ofLocal(eventData.startDate, ZoneId.of("Europe/Amsterdam"), null)),
+      dtstart = Dtstart(startDate),
       summary = Summary(summary),
-      description = Description(eventData.description),
+      description = Description(description),
       url = Url(link)
     )
   }
@@ -48,16 +76,27 @@ object Main extends App {
     browser.get(url)
   }
 
-  def fetchIndex(url: String): Future[List[Event]] =
-    fetchDocument(url)
+  def fetchEvents(): Future[List[Event]] =
+    fetchDocument(domain + "/sitemap")
       .map(links)
-      .flatMap(links => Future.sequence(links.map(domain + _).map(fetchDetails)))
+      .flatMap(links => Future.sequence(links.map(link =>
+        fetchDetails(link).recoverWith { case t => Future.failed(new IllegalStateException(s"Could not fetch details for $link", t)) })))
 
-  val events = Await.result(fetchIndex(domain + "/programma"), 20 seconds)
+  def events = Await.result(fetchEvents(), 20 seconds)
     .filter(!_.summary.get.value.text.contains("Theaterdiner reservering"))
+    .filter(!_.summary.get.value.text.contains("Inleiding Orkest van het Oosten"))
 
-  print(asIcal(Calendar(
+  def fetchCalendar(): String = asIcal(Calendar(
     prodid = Prodid("-//raboof/deventerschouwburg2ical//NONSGML v1.0//NL"),
     events = events
-  )))
+  ))
+}
+
+class MainLambda extends Main {
+  def handleRequest(inputStream: InputStream, outputStream: OutputStream): Unit =
+    outputStream.write(fetchCalendar().getBytes("UTF-8"));
+}
+
+object MainApp extends App with Main {
+  print(fetchCalendar())
 }
