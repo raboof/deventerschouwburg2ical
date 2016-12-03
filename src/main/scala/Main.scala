@@ -82,7 +82,7 @@ trait Main {
       .flatMap(links => Future.sequence(links.map(link =>
         fetchDetails(link).recoverWith { case t => Future.failed(new IllegalStateException(s"Could not fetch details for $link", t)) })))
 
-  def events = Await.result(fetchEvents(), 20 seconds)
+  def events = Await.result(fetchEvents(), 50 seconds)
     .filter(!_.summary.get.value.text.contains("Theaterdiner reservering"))
     .filter(!_.summary.get.value.text.contains("Inleiding Orkest van het Oosten"))
 
