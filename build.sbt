@@ -1,10 +1,9 @@
 scalacOptions := Seq("-feature", "-deprecation")
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.12.1"
 
-scalafmtConfig in ThisBuild := Some(file(".scalafmt"))
-
-libraryDependencies += "default" %% "scala-icalendar" % "0.1-SNAPSHOT"
-libraryDependencies += "net.ruippeixotog" %% "scala-scraper" % "1.1.0-SNAPSHOT"
+resolvers += Resolver.sonatypeRepo("public")
+libraryDependencies += "net.bzzt" %% "scala-icalendar" % "0.0.1-SNAPSHOT"
+libraryDependencies += "net.ruippeixotog" %% "scala-scraper" % "1.2.0"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.0" % "test"

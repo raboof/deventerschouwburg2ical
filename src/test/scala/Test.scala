@@ -22,7 +22,7 @@ class Test extends WordSpec with Main with Matchers {
       val event = parseEvent("https://deventerschouwburg.nl/programma/3js-u2-joshua-tree-1987-a-legendary-album", doc)
       event.uid.value.text should equal("deventerschouwburg2ical-3js-u2-joshua-tree-1987-a-legendary-album")
       event.summary.get.value.text should equal("3JS - U2, The Joshua Tree (1987) a legendary album")
-      event.dtstart.get.value.dt should equal(ZonedDateTime.of(2017, 6, 2, 20, 0, 0, 0, ZoneId.of("Europe/Amsterdam")))
+      event.dtstart.get.value.value.left.get.dt should equal(ZonedDateTime.of(2017, 6, 2, 20, 0, 0, 0, ZoneId.of("Europe/Amsterdam")))
     }
 
     "correctly convert a details page to an event without subtitle" in {
@@ -30,7 +30,7 @@ class Test extends WordSpec with Main with Matchers {
       val event = parseEvent("https://deventerschouwburg.nl/programma/ademnood-serious-request-deventer-2016", doc)
       event.uid.value.text should equal("deventerschouwburg2ical-ademnood-serious-request-deventer-2016")
       event.summary.get.value.text should equal("ADEMNOOD")
-      event.dtstart.get.value.dt should equal(ZonedDateTime.of(2016, 12, 20, 20, 30, 0, 0, ZoneId.of("Europe/Amsterdam")))
+      event.dtstart.get.value.value.left.get.dt should equal(ZonedDateTime.of(2016, 12, 20, 20, 30, 0, 0, ZoneId.of("Europe/Amsterdam")))
       event.description.get.value.text should include("Een muzikale topavond")
     }
   }
