@@ -19,8 +19,40 @@ import net.ruippeixotog.scalascraper.browser.JsoupBrowser
 import net.ruippeixotog.scalascraper.dsl.DSL._
 import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
 
-trait Main {
+object Helpers {
+  import scala.util.Try
+
   implicit def liftOption[T](value: T): Option[T] = Some(value)
+
+  object ToInt {
+    def unapply(in: String): Option[Int] = Try(in.toInt).toOption
+  }
+
+  object ToMonth {
+    def unapply(in: String): Option[Int] = in match {
+      case "januari" => 1
+      case "februari" => 2
+      case "maart" => 3
+      case "april" => 4
+      case "mei" => 5
+      case "juni" => 6
+      case "juli" => 7
+      case "augustus" => 8
+      case "september" => 9
+      case "oktober" => 10
+      case "november" => 11
+      case "december" => 12
+      case _ => None
+    }
+  }
+
+  implicit class RegexHelper(val sc: StringContext) extends AnyVal {
+    def re: scala.util.matching.Regex = sc.parts.mkString.r
+  }
+}
+
+trait Main {
+  import Helpers._
 
   def links(doc: Document): List[String] = {
     (doc >> elementList("h3")).filter(text(_) == "Producties")
@@ -28,25 +60,10 @@ trait Main {
       .map(_.attr("href"))
   }
 
-  val months = List(
-    "januari",
-    "februari",
-    "maart",
-    "april",
-    "mei",
-    "juni",
-    "juli",
-    "augustus",
-    "september",
-    "oktober",
-    "november",
-    "december")
-
   def parseDate(txt: String): ZonedDateTime = {
-    val re = (""".*? (\d+) (""" + months.mkString("|") + """) (\d+).*?(\d+):(\d+) uur.*""").r
     txt match {
-      case re(day, month, year, hour, minute) =>
-        ZonedDateTime.of(year.toInt, months.indexOf(month) + 1, day.toInt, hour.toInt, minute.toInt, 0, 0, ZoneId.of("Europe/Amsterdam"))
+      case re""".*? (\d+)${ToInt(day)} (\w+)${ToMonth(month)} (\d+)${ToInt(year)}.*?(\d+)${ToInt(hour)}:(\d+)${ToInt(minute)} uur.*""" =>
+        ZonedDateTime.of(year, month, day, hour, minute, 0, 0, ZoneId.of("Europe/Amsterdam"))
     }
   }
 
