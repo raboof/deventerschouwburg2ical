@@ -1,4 +1,4 @@
-import java.time.{ ZonedDateTime, ZoneId, ZoneOffset, LocalDateTime }
+import java.time.{ LocalDate, ZonedDateTime, ZoneId, ZoneOffset, LocalDateTime }
 import java.io.{ InputStream, OutputStream }
 
 import scala.language.{ postfixOps, implicitConversions }
@@ -59,10 +59,12 @@ trait Main {
       .map(_.attr("href"))
   }
 
-  def parseDate(txt: String): ZonedDateTime = {
+  def parseDate(txt: String): Option[Dtstart] = {
     txt match {
       case re""".*? (\d+)${ ToInt(day) } (\w+)${ ToMonth(month) } (\d+)${ ToInt(year) }.*?(\d+)${ ToInt(hour) }:(\d+)${ ToInt(minute) } uur.*""" =>
         ZonedDateTime.of(year, month, day, hour, minute, 0, 0, ZoneId.of("Europe/Amsterdam"))
+      case re""".*? (\d+)${ ToInt(day) } (\w+)${ ToMonth(month) } t/m \w+ \d+ \w+ (\d+)${ ToInt(year) }.*""" =>
+        LocalDate.of(year, month, day)
     }
   }
 
@@ -71,11 +73,10 @@ trait Main {
     val mainContent = doc >> element(".maincontent-bar")
     val summary = (mainContent >> text("h1")) + (mainContent >?> text("h2")).map(" - " + _).getOrElse("")
     val description = (mainContent >> texts("p")).tail.head
-    val startDate = parseDate((doc >> element(".prices-info") >> "p").mkString)
     val zone = ZoneId.of("Europe/Amsterdam")
     Event(
       uid = Uid(s"deventerschouwburg2ical-$id"),
-      dtstart = startDate,
+      dtstart = parseDate((doc >> element(".prices-info") >> "p").mkString),
       summary = Summary(summary),
       description = Description(description),
       url = Url(link)

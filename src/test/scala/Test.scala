@@ -1,4 +1,4 @@
-import java.time.{ ZonedDateTime, ZoneId }
+import java.time.{ LocalDate, ZonedDateTime, ZoneId }
 
 import icalendar.ical.Writer._
 
@@ -32,6 +32,13 @@ class Test extends WordSpec with Main with Matchers {
       event.summary.get.value.text should equal("ADEMNOOD")
       event.dtstart.get.value.value.left.get.dt should equal(ZonedDateTime.of(2016, 12, 20, 20, 30, 0, 0, ZoneId.of("Europe/Amsterdam")))
       event.description.get.value.text should include("Een muzikale topavond")
+    }
+
+    "correctly parse an event with only a date range, no time" in {
+      val doc = browser.parseResource("/blushhh.html")
+      val event = parseEvent("https://deventerschouwburg.nl/programma/blushhh", doc)
+      event.summary.get.value.text should equal("Blushhh - Flower Power")
+      event.dtstart.get.value.value.right.get.d should equal(LocalDate.of(2017, 5, 19))
     }
   }
 }
