@@ -12,7 +12,6 @@ import icalendar.Properties._
 import icalendar.CalendarProperties._
 import icalendar.ical.Writer._
 
-
 import net.ruippeixotog.scalascraper.model._
 import net.ruippeixotog.scalascraper.browser.JsoupBrowser
 
@@ -62,7 +61,7 @@ trait Main {
 
   def parseDate(txt: String): ZonedDateTime = {
     txt match {
-      case re""".*? (\d+)${ToInt(day)} (\w+)${ToMonth(month)} (\d+)${ToInt(year)}.*?(\d+)${ToInt(hour)}:(\d+)${ToInt(minute)} uur.*""" =>
+      case re""".*? (\d+)${ ToInt(day) } (\w+)${ ToMonth(month) } (\d+)${ ToInt(year) }.*?(\d+)${ ToInt(hour) }:(\d+)${ ToInt(minute) } uur.*""" =>
         ZonedDateTime.of(year, month, day, hour, minute, 0, 0, ZoneId.of("Europe/Amsterdam"))
     }
   }
@@ -76,7 +75,7 @@ trait Main {
     val zone = ZoneId.of("Europe/Amsterdam")
     Event(
       uid = Uid(s"deventerschouwburg2ical-$id"),
-      dtstart = Dtstart(startDate),
+      dtstart = startDate,
       summary = Summary(summary),
       description = Description(description),
       url = Url(link)
