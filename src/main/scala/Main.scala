@@ -61,7 +61,7 @@ trait Main {
 
   def parseDate(txt: String): Option[Dtstart] = {
     txt match {
-      case re""".*? (\d+)${ ToInt(day) } (\w+)${ ToMonth(month) } (\d+)${ ToInt(year) }.*?(\d+)${ ToInt(hour) }:(\d+)${ ToInt(minute) } uur.*""" =>
+      case re""".*? (\d+)${ ToInt(day) } (\w+)${ ToMonth(month) } (\d+)${ ToInt(year) }.*?(\d?\d)${ ToInt(hour) }:(\d{2})${ ToInt(minute) }.*""" =>
         ZonedDateTime.of(year, month, day, hour, minute, 0, 0, ZoneId.of("Europe/Amsterdam"))
       case re""".*? (\d+)${ ToInt(day) } (\w+)${ ToMonth(month) } t/m \w+ \d+ \w+ (\d+)${ ToInt(year) }.*""" =>
         LocalDate.of(year, month, day)
