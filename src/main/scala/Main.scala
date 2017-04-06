@@ -72,7 +72,7 @@ trait Main {
     val id = ".*/programma/(.*)".r.findFirstMatchIn(link).get.group(1)
     val mainContent = doc >> element(".maincontent-bar")
     val summary = (mainContent >> text("h1")) + (mainContent >?> text("h2")).map(" - " + _).getOrElse("")
-    val description = (mainContent >> texts("p")).tail.head
+    val description = (doc >> texts(".maincontent-bar > p")).tail.head
     val zone = ZoneId.of("Europe/Amsterdam")
     Event(
       uid = Uid(s"deventerschouwburg2ical-$id"),

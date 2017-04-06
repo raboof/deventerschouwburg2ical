@@ -39,6 +39,7 @@ class Test extends WordSpec with Main with Matchers {
       val event = parseEvent("https://deventerschouwburg.nl/programma/blushhh", doc)
       event.summary.get.value.text should equal("Blushhh - Flower Power")
       event.dtstart.get.value.value.right.get.d should equal(LocalDate.of(2017, 5, 19))
+      event.description.get.value.text should include("Internationale artiesten")
     }
   }
 }
